@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from validation import (
+    assert_cost_within_budget,
     assert_evolution_triggered,
     assert_memory_persisted,
     assert_quality_threshold,
@@ -86,10 +87,7 @@ def test_full_loop_with_evolution(
 
     # Verify budget
     total_cost = result1.estimated_cost_usd + result2.estimated_cost_usd
-    budget_limit = 0.20  # Slightly higher than advertised $0.15 for safety
-    assert (
-        total_cost <= budget_limit
-    ), f"Cost ${total_cost:.4f} exceeded budget ${budget_limit:.2f}"
+    assert_cost_within_budget(total_cost, max_budget=0.20)
 
     # Log summary
     print("\n✅ Scenario 2 PASSED")
