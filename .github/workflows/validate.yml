@@ -1,0 +1,73 @@
+name: Validate netanel-core
+
+on:
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Checkout netanel-core
+        uses: actions/checkout@v4
+        with:
+          repository: netanel-systems/netanel-core
+          path: netanel-core
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e netanel-core
+          pip install -e .[test]
+
+      - name: Run validation scenarios
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          VALIDATION_MAX_COST_USD: "1.00"
+        run: |
+          pytest validation/scenarios/ -v --tb=short
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-artifacts
+          path: artifacts/
+          retention-days: 30
+
+      - name: Check cost
+        if: always()
+        run: |
+          if [ -f "artifacts/metrics.json" ]; then
+            # Validate JSON and extract cost
+            if ! jq -e '.estimated_cost_usd' artifacts/metrics.json > /dev/null 2>&1; then
+              echo "::error::Invalid metrics.json or missing estimated_cost_usd"
+              exit 1
+            fi
+
+            COST=$(jq -r '.estimated_cost_usd // 0.00' artifacts/metrics.json)
+            echo "Total cost: \$$COST"
+
+            # Validate COST is numeric
+            if ! [[ "$COST" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+              echo "::error::Invalid cost value: $COST"
+              exit 1
+            fi
+
+            if (( $(echo "$COST > 1.00" | bc -l) )); then
+              echo "::error::Cost exceeded budget: \$$COST > \$1.00"
+              exit 1
+            fi
+          fi
