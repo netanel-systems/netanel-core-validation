@@ -19,11 +19,16 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Checkout netanel-core
+        uses: actions/checkout@v4
+        with:
+          repository: netanel-systems/netanel-core
+          path: ../netanel-core
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          # Install netanel-core from sibling repo
-          git clone https://github.com/netanel-systems/netanel-core.git ../netanel-core
           pip install -e ../netanel-core
           pip install -e .[test]
 
