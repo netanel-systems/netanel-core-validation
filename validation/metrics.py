@@ -9,6 +9,7 @@ Tracks performance and quality metrics:
 
 from __future__ import annotations
 
+import math
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -162,8 +163,6 @@ class MetricsCollector:
 
         def percentile_index(p: float, count: int) -> int:
             """Calculate nearest-rank percentile index."""
-            import math
-
             return min(max(0, math.ceil(p * count) - 1), count - 1)
 
         return {
