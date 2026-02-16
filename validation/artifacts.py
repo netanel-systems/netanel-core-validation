@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -50,7 +50,7 @@ class ArtifactManager:
 
         entry = {
             "call_index": call_index,
-            "timestamp": datetime.now(datetime.UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             **call_data,
         }
 
@@ -100,7 +100,7 @@ class ArtifactManager:
         report_lines = [
             "# Validation Report",
             "",
-            f"**Generated:** {datetime.now(datetime.UTC).isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             "",
             "## Summary",
             "",
