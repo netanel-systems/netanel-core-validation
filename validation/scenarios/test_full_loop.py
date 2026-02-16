@@ -12,8 +12,11 @@ from pathlib import Path
 
 import pytest
 
-from validation import assert_evolution_triggered, assert_memory_persisted
-from validation.assertions import assert_quality_threshold
+from validation import (
+    assert_evolution_triggered,
+    assert_memory_persisted,
+    assert_quality_threshold,
+)
 from validation.config import ValidationConfig
 from validation.tasks import CODING_TASKS
 from validation.validator import LearningValidator
@@ -76,15 +79,19 @@ def test_full_loop_with_evolution(
         max_calls=10,
     )
 
-    final_snapshot = validator2.metrics.snapshots[-1]
-
     # Verify quality maintained
     all_scores = validator1.metrics.quality_scores + validator2.metrics.quality_scores
     assert_quality_threshold(all_scores, min_threshold=config.quality_threshold)
 
-    # Log summary
+    # Verify budget
     total_cost = result1.estimated_cost_usd + result2.estimated_cost_usd
-    print(f"\n✅ Scenario 2 PASSED")
+    budget_limit = 0.20  # Slightly higher than advertised $0.15 for safety
+    assert (
+        total_cost <= budget_limit
+    ), f"Cost ${total_cost:.4f} exceeded budget ${budget_limit:.2f}"
+
+    # Log summary
+    print("\n✅ Scenario 2 PASSED")
     print(f"   Phase 1 calls: {result1.total_calls}")
     print(f"   Phase 2 calls: {result2.total_calls}")
     print(f"   Evolution triggered: {mid_snapshot.evolution_count - initial_snapshot.evolution_count}")

@@ -12,21 +12,25 @@ from validation.config import ValidationConfig
 from validation.metrics import MetricsCollector, MemorySnapshot
 from validation.artifacts import ArtifactManager
 from validation.assertions import (
-    assert_quality_threshold,
+    assert_cost_within_budget,
+    assert_evolution_triggered,
+    assert_learning_extracted,
     assert_memory_persisted,
     assert_no_crashes,
-    assert_learning_extracted,
+    assert_quality_threshold,
 )
 
 __all__ = [
-    "LearningValidator",
-    "ValidationResult",
-    "ValidationConfig",
-    "MetricsCollector",
-    "MemorySnapshot",
     "ArtifactManager",
-    "assert_quality_threshold",
+    "LearningValidator",
+    "MemorySnapshot",
+    "MetricsCollector",
+    "ValidationConfig",
+    "ValidationResult",
+    "assert_cost_within_budget",
+    "assert_evolution_triggered",
+    "assert_learning_extracted",
     "assert_memory_persisted",
     "assert_no_crashes",
-    "assert_learning_extracted",
+    "assert_quality_threshold",
 ]

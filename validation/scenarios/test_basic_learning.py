@@ -65,8 +65,14 @@ def test_basic_learning_loop(
     # Verify learnings extracted
     assert_learning_extracted(final_snapshot, min_patterns=1)
 
+    # Verify budget
+    budget_limit = 0.10  # Slightly higher than advertised $0.05 for safety
+    assert (
+        result.estimated_cost_usd <= budget_limit
+    ), f"Cost ${result.estimated_cost_usd:.4f} exceeded budget ${budget_limit:.2f}"
+
     # Log summary
-    print(f"\n✅ Scenario 1 PASSED")
+    print("\n✅ Scenario 1 PASSED")
     print(f"   Calls: {result.total_calls}")
     print(f"   Quality: {validator.metrics._quality_stats()['mean']:.3f}")
     print(f"   Cost: ${result.estimated_cost_usd:.4f}")

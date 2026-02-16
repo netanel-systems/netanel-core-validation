@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -50,11 +50,11 @@ class ArtifactManager:
 
         entry = {
             "call_index": call_index,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             **call_data,
         }
 
-        with log_file.open("a") as f:
+        with log_file.open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry) + "\n")
 
     def save_snapshot(self, name: str, snapshot: MemorySnapshot) -> None:
@@ -71,7 +71,7 @@ class ArtifactManager:
         snapshots_dir.mkdir(exist_ok=True)
 
         snapshot_file = snapshots_dir / f"{name}.json"
-        snapshot_file.write_text(json.dumps(asdict(snapshot), indent=2))
+        snapshot_file.write_text(json.dumps(asdict(snapshot), indent=2), encoding="utf-8")
 
     def save_metrics(self, metrics: dict[str, Any]) -> None:
         """Save metrics export.
@@ -83,7 +83,7 @@ class ArtifactManager:
             return
 
         metrics_file = self.artifacts_dir / "metrics.json"
-        metrics_file.write_text(json.dumps(metrics, indent=2))
+        metrics_file.write_text(json.dumps(metrics, indent=2), encoding="utf-8")
 
     def generate_report(self, metrics: dict[str, Any]) -> str:
         """Generate human-readable validation report.
@@ -100,7 +100,7 @@ class ArtifactManager:
         report_lines = [
             "# Validation Report",
             "",
-            f"**Generated:** {datetime.now().isoformat()}",
+            f"**Generated:** {datetime.now(timezone.utc).isoformat()}",
             "",
             "## Summary",
             "",
@@ -152,6 +152,6 @@ class ArtifactManager:
 
         if self._enabled:
             report_file = self.artifacts_dir / "report.md"
-            report_file.write_text(report)
+            report_file.write_text(report, encoding="utf-8")
 
         return report

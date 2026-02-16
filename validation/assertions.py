@@ -72,7 +72,7 @@ def assert_no_crashes(call_results: list[dict]) -> None:
     if not call_results:
         raise AssertionError("No call results to validate")
 
-    failures = [r for r in call_results if not r.get("success", True)]
+    failures = [r for r in call_results if not r.get("success", False)]
 
     if failures:
         count = len(failures)

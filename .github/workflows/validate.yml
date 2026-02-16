@@ -22,7 +22,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .
+          # Install netanel-core from sibling repo
+          git clone https://github.com/netanel-systems/netanel-core.git ../netanel-core
+          pip install -e ../netanel-core
+          pip install -e .[test]
 
       - name: Run validation scenarios
         env:
@@ -43,8 +46,20 @@ jobs:
         if: always()
         run: |
           if [ -f "artifacts/metrics.json" ]; then
-            COST=$(jq -r '.estimated_cost_usd' artifacts/metrics.json)
+            # Validate JSON and extract cost
+            if ! jq -e '.estimated_cost_usd' artifacts/metrics.json > /dev/null 2>&1; then
+              echo "::error::Invalid metrics.json or missing estimated_cost_usd"
+              exit 1
+            fi
+
+            COST=$(jq -r '.estimated_cost_usd // 0.00' artifacts/metrics.json)
             echo "Total cost: \$$COST"
+
+            # Validate COST is numeric
+            if ! [[ "$COST" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+              echo "::error::Invalid cost value: $COST"
+              exit 1
+            fi
 
             if (( $(echo "$COST > 1.00" | bc -l) )); then
               echo "::error::Cost exceeded budget: \$$COST > \$1.00"

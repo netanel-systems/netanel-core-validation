@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from validation.assertions import assert_cost_within_budget, assert_no_crashes, assert_quality_threshold
+from validation import assert_cost_within_budget, assert_no_crashes, assert_quality_threshold
 from validation.config import ValidationConfig
 from validation.tasks import CODING_TASKS
 from validation.validator import LearningValidator
@@ -48,9 +48,9 @@ def test_stress_with_high_volume(
         max_calls=50,
     )
 
-    # Verify no crashes
-    call_results = [{"success": True} for _ in range(result.total_calls)]
-    assert_no_crashes(call_results)
+    # Verify no crashes (all calls should succeed)
+    # Note: validator tracks success internally, this validates the framework worked
+    assert result.success, "Validation run failed"
 
     # Verify quality maintained
     assert_quality_threshold(
@@ -65,7 +65,7 @@ def test_stress_with_high_volume(
     )
 
     # Log summary
-    print(f"\n✅ Scenario 3 PASSED")
+    print("\n✅ Scenario 3 PASSED")
     print(f"   Calls: {result.total_calls}")
     print(f"   Quality: {validator.metrics._quality_stats()['mean']:.3f}")
     print(f"   Cost: ${result.estimated_cost_usd:.4f}")

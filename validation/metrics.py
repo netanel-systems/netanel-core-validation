@@ -46,8 +46,12 @@ class MemorySnapshot:
             )
 
         files = list(memories_dir.rglob("*"))
-        total_files = len([f for f in files if f.is_file()])
-        total_size = sum(f.stat().st_size for f in files if f.is_file())
+        total_files = 0
+        total_size = 0
+        for f in files:
+            if f.is_file():
+                total_files += 1
+                total_size += f.stat().st_size
 
         # Count patterns and evolutions (if netanel-core creates these files)
         pattern_count = len(list(memories_dir.glob("**/patterns.jsonl")))
@@ -156,13 +160,19 @@ class MetricsCollector:
         sorted_durations = sorted(self.call_durations)
         n = len(sorted_durations)
 
+        def percentile_index(p: float, count: int) -> int:
+            """Calculate nearest-rank percentile index."""
+            import math
+
+            return min(max(0, math.ceil(p * count) - 1), count - 1)
+
         return {
             "min_s": sorted_durations[0],
             "max_s": sorted_durations[-1],
             "mean_s": sum(sorted_durations) / n,
-            "p50_s": sorted_durations[int(n * 0.50)],
-            "p95_s": sorted_durations[int(n * 0.95)] if n > 1 else sorted_durations[0],
-            "p99_s": sorted_durations[int(n * 0.99)] if n > 1 else sorted_durations[0],
+            "p50_s": sorted_durations[percentile_index(0.50, n)],
+            "p95_s": sorted_durations[percentile_index(0.95, n)],
+            "p99_s": sorted_durations[percentile_index(0.99, n)],
         }
 
     def _quality_stats(self) -> dict[str, float]:

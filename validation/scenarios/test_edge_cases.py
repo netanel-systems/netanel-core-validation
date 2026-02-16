@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from validation.assertions import assert_no_crashes, assert_quality_threshold
+from validation import assert_quality_threshold
 from validation.config import ValidationConfig
 from validation.tasks import CODING_TASKS
 from validation.validator import LearningValidator
@@ -71,8 +71,7 @@ def test_edge_cases(
     )
 
     # Verify no crashes
-    call_results = [{"success": True} for _ in range(result.total_calls)]
-    assert_no_crashes(call_results)
+    assert result.success, "Validation run failed"
 
     # Verify quality (may be lower for edge cases, so check > 0.5)
     assert_quality_threshold(
@@ -80,8 +79,14 @@ def test_edge_cases(
         min_threshold=0.5,  # Lower threshold for edge cases
     )
 
+    # Verify budget
+    budget_limit = 0.15  # Slightly higher than advertised $0.10 for safety
+    assert (
+        result.estimated_cost_usd <= budget_limit
+    ), f"Cost ${result.estimated_cost_usd:.4f} exceeded budget ${budget_limit:.2f}"
+
     # Log summary
-    print(f"\n✅ Scenario 4 PASSED")
+    print("\n✅ Scenario 4 PASSED")
     print(f"   Edge cases tested: {result.total_calls}")
     print(f"   Quality: {validator.metrics._quality_stats()['mean']:.3f}")
     print(f"   Cost: ${result.estimated_cost_usd:.4f}")
