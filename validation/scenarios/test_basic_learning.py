@@ -3,7 +3,7 @@
 Tests core learning pipeline with 10 real LLM calls.
 Verifies quality, memory persistence, and learning extraction.
 
-Budget: ~$0.05
+Budget: ~$0.10 (buffer for safety)
 """
 
 from __future__ import annotations
@@ -12,7 +12,12 @@ from pathlib import Path
 
 import pytest
 
-from validation import assert_learning_extracted, assert_memory_persisted, assert_quality_threshold
+from validation import (
+    assert_cost_within_budget,
+    assert_learning_extracted,
+    assert_memory_persisted,
+    assert_quality_threshold,
+)
 from validation.config import ValidationConfig
 from validation.tasks import CODING_TASKS
 from validation.validator import LearningValidator
@@ -66,15 +71,15 @@ def test_basic_learning_loop(
     assert_learning_extracted(final_snapshot, min_patterns=1)
 
     # Verify budget
-    budget_limit = 0.10  # Slightly higher than advertised $0.05 for safety
-    assert (
-        result.estimated_cost_usd <= budget_limit
-    ), f"Cost ${result.estimated_cost_usd:.4f} exceeded budget ${budget_limit:.2f}"
+    assert_cost_within_budget(result.estimated_cost_usd, max_budget=0.10)
 
     # Log summary
+    quality_stats = validator.metrics._quality_stats()
+    mean_quality = quality_stats.get("mean", 0.0)
+
     print("\n✅ Scenario 1 PASSED")
     print(f"   Calls: {result.total_calls}")
-    print(f"   Quality: {validator.metrics._quality_stats()['mean']:.3f}")
+    print(f"   Quality: {mean_quality:.3f}")
     print(f"   Cost: ${result.estimated_cost_usd:.4f}")
     print(f"   Memory growth: {final_snapshot.total_files - initial_snapshot.total_files} files")
 

@@ -3,7 +3,7 @@
 Tests prompt evolution and session restart with 30 calls.
 Verifies evolution triggers and memory survives restart.
 
-Budget: ~$0.15
+Budget: ~$0.20 (buffer for safety)
 """
 
 from __future__ import annotations
@@ -57,7 +57,8 @@ def test_full_loop_with_evolution(
     # Verify evolution triggered
     assert_evolution_triggered(initial_snapshot, mid_snapshot)
 
-    validator1.cleanup()
+    # Don't cleanup yet - need memories_dir for Phase 2
+    # validator1.cleanup()
 
     # Phase 2: Restart session with same memories_dir
     validator2 = LearningValidator(
@@ -97,4 +98,6 @@ def test_full_loop_with_evolution(
     print(f"   Evolution triggered: {mid_snapshot.evolution_count - initial_snapshot.evolution_count}")
     print(f"   Total cost: ${total_cost:.4f}")
 
+    # Cleanup both validators now
+    validator1.cleanup()
     validator2.cleanup()
