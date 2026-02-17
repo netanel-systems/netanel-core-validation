@@ -54,9 +54,9 @@ class MemorySnapshot:
                 total_files += 1
                 total_size += f.stat().st_size
 
-        # Count patterns and evolutions (if netanel-core creates these files)
-        pattern_count = len(list(memories_dir.glob("**/patterns.jsonl")))
-        evolution_count = len(list(memories_dir.glob("**/evolutions.jsonl")))
+        # Count patterns and evolutions (netanel-core uses .md files in patterns/ dirs)
+        pattern_count = len(list(memories_dir.glob("**/patterns/*.md")))
+        evolution_count = len(list(memories_dir.glob("**/prompts/*.md")))
 
         return cls(
             timestamp=time.time(),
